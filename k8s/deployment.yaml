@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: demo-ui
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: demo-ui
+
+  template:
+    metadata:
+      labels:
+        app: demo-ui
+
+    spec:
+      containers:
+        - name: demo-ui
+
+          image: ghcr.io/hemanth88970/demo-release-drafter:latest
+
+          ports:
+            - containerPort: 80

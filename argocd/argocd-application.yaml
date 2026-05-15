@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: demo-ui
+
+  namespace: argocd
+
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/Hemanth88970/demo-release-drafter.git
+
+    targetRevision: release
+
+    path: k8s
+
+  destination:
+    server: https://kubernetes.default.svc
+
+    namespace: default
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

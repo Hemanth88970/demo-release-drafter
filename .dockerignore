@@ -1,0 +1,6 @@
+.git
+.github
+README.md
+*.log
+node_modules
+__pycache__

@@ -1,0 +1,59 @@
+name: Build and Deploy Demo UI
+
+on:
+  push:
+    branches:
+      - release
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+
+      # Checkout repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Generate image tag
+      - name: Set Image Tag
+        run: echo "TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      # Login to GHCR
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      # Build and Push Docker Image
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/hemanth88970/demo-release-drafter:${{ env.TAG }}
+            ghcr.io/hemanth88970/demo-release-drafter:latest
+
+      # Update Kubernetes Deployment Image
+      - name: Update Kubernetes Deployment
+        run: |
+          sed -i "s|image: .*|image: ghcr.io/hemanth88970/demo-release-drafter:${TAG}|g" k8s/deployment.yaml
+
+      # Commit updated deployment.yaml
+      - name: Commit and Push Changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+
+          git add k8s/deployment.yaml
+
+          git commit -m "Update image tag to ${TAG}" || echo "No changes"
+
+          git push
