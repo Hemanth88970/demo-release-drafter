@@ -1,1 +1,1 @@
-print("Profile page added")
+print("Payment bug fixed")
