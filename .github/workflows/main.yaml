@@ -18,6 +18,14 @@ jobs:
       # Checkout repository
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Debug files
+      - name: Debug Files
+        run: |
+          pwd
+          ls -la
 
       # Generate image tag
       - name: Set Image Tag
@@ -35,7 +43,7 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ${{ github.workspace }}
           push: true
           tags: |
             ghcr.io/hemanth88970/demo-release-drafter:${{ env.TAG }}
