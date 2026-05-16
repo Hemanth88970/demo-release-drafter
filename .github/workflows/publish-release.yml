@@ -1,10 +1,9 @@
-name: Publish Draft Release
+name: Publish GitHub Release
 
 on:
-  schedule:
-    - cron: '20 10 * * *'
-
-  workflow_dispatch:
+  push:
+    branches:
+      - release
 
 permissions:
   contents: write
