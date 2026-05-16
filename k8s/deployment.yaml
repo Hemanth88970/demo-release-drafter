@@ -20,7 +20,7 @@ spec:
       containers:
         - name: demo-ui
 
-          image: ghcr.io/hemanth88970/demo-release-drafter:ee9aafc
+          image: ghcr.io/hemanth88970/demo-release-drafter:5711499
 
           ports:
             - containerPort: 80
