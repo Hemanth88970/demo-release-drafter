@@ -1,4 +1,4 @@
-name: Build and Deploy Demo UI
+name: Build Deploy and Release
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - release
 
 jobs:
-  build-and-deploy:
+  build-deploy-release:
     runs-on: ubuntu-latest
 
     permissions:
@@ -15,13 +15,22 @@ jobs:
 
     steps:
 
-      # Checkout repository
+      # Checkout Repository
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      # Generate image tag
-      - name: Set Image Tag
-        run: echo "TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
+      # Debug Files
+      - name: Debug Files
+        run: |
+          pwd
+          ls -la
+
+      # Generate Release Tag
+      - name: Set Release Tag
+        run: |
+          echo "TAG=v1.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
 
       # Login to GHCR
       - name: Login to GHCR
@@ -35,18 +44,18 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ${{ github.workspace }}
           push: true
           tags: |
             ghcr.io/hemanth88970/demo-release-drafter:${{ env.TAG }}
             ghcr.io/hemanth88970/demo-release-drafter:latest
 
-      # Update Kubernetes Deployment Image
+      # Update Kubernetes Deployment
       - name: Update Kubernetes Deployment
         run: |
           sed -i "s|image: .*|image: ghcr.io/hemanth88970/demo-release-drafter:${TAG}|g" k8s/deployment.yaml
 
-      # Commit updated deployment.yaml
+      # Commit Updated Deployment YAML
       - name: Commit and Push Changes
         run: |
           git config user.name "github-actions"
@@ -57,3 +66,19 @@ jobs:
           git commit -m "Update image tag to ${TAG}" || echo "No changes"
 
           git push
+
+      # Create Git Tag
+      - name: Create Git Tag
+        run: |
+          git tag $TAG
+          git push origin $TAG
+
+      # Create GitHub Release
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          name: Release ${{ env.TAG }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
